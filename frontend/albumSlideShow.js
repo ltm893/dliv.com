@@ -9,6 +9,8 @@ const photoAlbums = async () => {
     return albums;
 }
 
+
+
 const loadAlbumSelector = async (selector) => {
   headerMessage.innerText = 'Getting Albums' ; 
     albums = await photoAlbums() ; 
@@ -68,3 +70,8 @@ const doSlideShow = (photos) => {
     INTERVALS.push(interval);
     return ; 
 }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadAlbumSelector('selectAlbum');
+});
