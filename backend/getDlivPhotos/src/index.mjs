@@ -16,7 +16,7 @@ import {
 
 export const handler = async (event) => {
  
-  const album = event.pathParameters.album + '/' ; 
+  const album = 'images/' + event.pathParameters.album + '/' ; 
   console.log("album :" + album) ; 
  
   console.log("request: " + JSON.stringify(event));

@@ -50,7 +50,7 @@ async function getPhotoPrefixObjects() {
       if(CommonPrefixes && CommonPrefixes.length == 1) {
         let prefixObj = CommonPrefixes[0] ;
         let prefix = prefixObj.Prefix ;
-        let album = decodeURIComponent(prefix.replace('images/', ''));
+        let album = decodeURIComponent(prefix.replace('images/', '').replace('/', ''));
          albums.push(album);
       }
     }
