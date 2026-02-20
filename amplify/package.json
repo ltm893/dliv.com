@@ -1,10 +1,21 @@
 {
-  "type": "module",
+  "name": "amplify",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-amplify/backend": "^1.21.0",
+    "aws-amplify": "^6.16.2"
+  },
   "devDependencies": {
     "@aws-amplify/backend-cli": "^1.8.2",
     "@types/node": "^25.3.0"
   },
-  "dependencies": {
-    "@aws-amplify/backend": "^1.21.0"
-  }
+  "type": "module"
 }
