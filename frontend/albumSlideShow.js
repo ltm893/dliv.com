@@ -1,7 +1,9 @@
  
 INTERVALS = [];
-const ALBUMS_URL = 'https://9m0eizfep4.execute-api.us-east-1.amazonaws.com/Dev/albums' ; 
-const PHOTOS_URL =  'https://9m0eizfep4.execute-api.us-east-1.amazonaws.com/Dev/photos-from-album/' ; 
+// const ALBUMS_URL = 'https://9m0eizfep4.execute-api.us-east-1.amazonaws.com/Dev/albums' ; 
+//const PHOTOS_URL =  'https://9m0eizfep4.execute-api.us-east-1.amazonaws.com/Dev/photos-from-album/' ; 
+const ALBUMS_URL = 'https://kgztccthjk.execute-api.us-east-1.amazonaws.com/prod/albums';
+const PHOTOS_URL = 'https://kgztccthjk.execute-api.us-east-1.amazonaws.com/prod/albums/';
 
 const photoAlbums = async () => {
     const response = await fetch(ALBUMS_URL);
