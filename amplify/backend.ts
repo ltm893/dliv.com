@@ -26,8 +26,12 @@ const bucketsLambda = backend.getDlivPhotoBuckets.resources.lambda as Function;
 // photosLambda.addEnvironment("S3REGIONURL", s3RegionUrl);
 // bucketsLambda.addEnvironment("BUCKET", bucket);
 
-const bucket = process.env.BUCKET_NAME ?? "dliv.com-2-dev";
+// const bucket = process.env.BUCKET_NAME ?? "dliv.com-2-dev";
+/// const s3RegionUrl = "https://s3.amazonaws.com/";
+
+const bucket = "dliv.com-2";
 const s3RegionUrl = "https://s3.amazonaws.com/";
+
 
 photosLambda.addEnvironment("BUCKET", bucket);
 photosLambda.addEnvironment("S3REGIONURL", s3RegionUrl);
