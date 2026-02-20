@@ -3,5 +3,8 @@
   "devDependencies": {
     "@aws-amplify/backend-cli": "^1.8.2",
     "@types/node": "^25.3.0"
+  },
+  "dependencies": {
+    "@aws-amplify/backend": "^1.21.0"
   }
 }
