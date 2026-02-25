@@ -30,6 +30,29 @@ option {
 
 #slide {
     width: 90%;
+    display: block;
+}
+
+#controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 12px 0;
+}
+
+#controls button {
+    font-size: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    line-height: 1;
+}
+
+#controls button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 @media screen and (min-width: 670px) {
