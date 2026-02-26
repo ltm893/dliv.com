@@ -14,9 +14,7 @@ import { Function } from "aws-cdk-lib/aws-lambda";
 import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 
 // ─── Auth (invite-only: no self-signup) ─────────────────────────────────────
-const auth = defineAuth({
-  loginWith: { email: true },
-});
+import { auth } from "./auth/resource";
 
 
 
