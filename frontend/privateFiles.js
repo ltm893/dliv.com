@@ -3,13 +3,8 @@
 let amplifyConfigured = false;
 
 async function loadAmplify() {
-  const [
-    { Amplify },
-    { fetchAuthSession, signIn, signOut, getCurrentUser, confirmSignIn },
-  ] = await Promise.all([
-    import("https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/aws-amplify.js"),
-    import("https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/aws-amplify.js"),
-  ]);
+  const { Amplify, fetchAuthSession, signIn, signOut, getCurrentUser, confirmSignIn } =
+    await import("https://esm.sh/aws-amplify@6");
 
   if (!amplifyConfigured) {
     const outputs = await fetch("/amplify_outputs.json").then((r) => r.json());
