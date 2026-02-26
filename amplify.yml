@@ -10,7 +10,7 @@ frontend:
   phases:
     build:
       commands:
-        - echo "No build step needed for vanilla JS"
+        - cp amplify_outputs.json frontend/amplify_outputs.json
   artifacts:
     baseDirectory: frontend
     files:
