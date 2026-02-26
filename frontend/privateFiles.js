@@ -3,8 +3,9 @@
 let amplifyConfigured = false;
 
 async function loadAmplify() {
-  const { Amplify, fetchAuthSession, signIn, signOut, getCurrentUser, confirmSignIn } =
-    await import("https://esm.sh/aws-amplify@6");
+  const { Amplify } = await import("https://esm.sh/aws-amplify@6");
+  const { fetchAuthSession, signIn, signOut, getCurrentUser, confirmSignIn } =
+    await import("https://esm.sh/aws-amplify@6/auth");
 
   if (!amplifyConfigured) {
     const outputs = await fetch("/amplify_outputs.json").then((r) => r.json());
