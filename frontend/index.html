@@ -7,16 +7,60 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="stylesheet" href="abc.css" />
     <script src="./albumSlideShow.js"></script>
+    <style>
+        /* ── Private section ── */
+        #private-section {
+            margin: 2rem auto;
+            max-width: 600px;
+            font-family: sans-serif;
+        }
+        #private-toggle {
+            background: none;
+            border: 1px solid #888;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        #private-panel { margin-top: 1rem; }
+        #private-login input {
+            display: block;
+            width: 100%;
+            margin: 0.4rem 0;
+            padding: 0.5rem;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #private-login button, #private-browser button {
+            margin-top: 0.5rem;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
+        }
+        #private-file-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 0.5rem;
+        }
+        #private-file-list li {
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        .file-size { color: #999; font-size: 0.8rem; }
+        #private-error { color: red; font-size: 0.85rem; margin-top: 0.3rem; }
+    </style>
 </head>
 
 <body>
-    <div id="headerMessage">
-
-    </div>
+    <div id="headerMessage"></div>
 
     <div id="slideshow-container">
         <div id="show-selector">
-            <label id="selectLabel" for="selectAlbum">Slideshows</label> <select id="selectAlbum"></select>
+            <label id="selectLabel" for="selectAlbum">Slideshows</label>
+            <select id="selectAlbum"></select>
         </div>
         <div id="slideshow"><img id="slide"></div>
         <div id="controls">
@@ -25,12 +69,58 @@
             <button id="nextBtn" title="Next">⏭</button>
         </div>
     </div>
+
     <div>
-        <a href="https://digital.fidelity.com/prgw/digital/familygifting/mlgLandingPage?uuid=af6a9494832f4c9aaab448d3a7c55a25">Scouty College Fund</a> 
+        <a href="https://digital.fidelity.com/prgw/digital/familygifting/mlgLandingPage?uuid=af6a9494832f4c9aaab448d3a7c55a25">Scouty College Fund</a>
     </div>
+
+    <!-- ── Private Files Section ─────────────────────────────────────── -->
+    <div id="private-section">
+        <button id="private-toggle" onclick="togglePrivate()">🔒 Private Files</button>
+
+        <div id="private-panel" style="display:none">
+
+            <!-- Login form -->
+            <div id="private-login" style="display:none">
+                <h3>Sign In</h3>
+                <input type="email" id="private-email" placeholder="Email" />
+                <input type="password" id="private-password" placeholder="Password" />
+                <button onclick="handleSignIn()">Sign In</button>
+                <p id="private-error"></p>
+            </div>
+
+            <!-- File browser (shown after login) -->
+            <div id="private-browser" style="display:none">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <h3 style="margin:0">Private Files</h3>
+                    <button onclick="handleSignOut()">Sign Out</button>
+                </div>
+                <ul id="private-file-list"></ul>
+            </div>
+
+        </div>
+    </div>
+    <!-- ─────────────────────────────────────────────────────────────── -->
+
     <footer>
         <p>&copy; 2020 - This is the footer.</p>
     </footer>
+
+    <script type="module" src="./privateFiles.js"></script>
+    <script>
+        let privateInitialized = false;
+
+        function togglePrivate() {
+            const panel = document.getElementById("private-panel");
+            const open = panel.style.display === "block";
+            panel.style.display = open ? "none" : "block";
+
+            if (!open && !privateInitialized) {
+                privateInitialized = true;
+                window.initPrivate();
+            }
+        }
+    </script>
 </body>
 
 </html>

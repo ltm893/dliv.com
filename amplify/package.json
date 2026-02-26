@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "@aws-amplify/backend": "^1.21.0",
+    "@aws-sdk/s3-request-presigner": "^3.998.0",
     "aws-amplify": "^6.16.2"
   },
   "devDependencies": {
