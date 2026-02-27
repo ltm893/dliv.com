@@ -7,6 +7,7 @@ import {
   S3Client,
   ListObjectsV2Command,
   GetObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -15,14 +16,26 @@ const client = new S3Client({});
 export const handler = async (event) => {
   console.log("request: " + JSON.stringify(event));
   const pathParams = event.pathParameters;
+  const method = event.httpMethod;
 
   try {
+    // POST /files  →  generate a presigned PUT URL for uploading
+    if (method === "POST" && (!pathParams || !pathParams.key)) {
+      const body = JSON.parse(event.body ?? "{}");
+      const { key, contentType } = body;
+      if (!key) return respond(400, { error: "key is required" });
+      const url = await getPresignedUploadUrl(key, contentType);
+      return respond(200, { url });
+    }
+
+    // GET /files  →  list files and folders
     if (!pathParams || !pathParams.key) {
       const prefix = event.queryStringParameters?.prefix ?? "";
       const files = await listFiles(prefix);
       return respond(200, files);
     }
 
+    // GET /files/{key+}  →  presigned download URL
     const key = decodeURIComponent(pathParams.key);
     const url = await getPresignedUrl(key);
     return respond(200, { url });
@@ -78,6 +91,16 @@ async function getPresignedUrl(key) {
     Bucket: PRIVATE_BUCKET,
     Key: key,
   });
+  return getSignedUrl(client, command, { expiresIn: 900 });
+}
+
+async function getPresignedUploadUrl(key, contentType) {
+  const command = new PutObjectCommand({
+    Bucket: PRIVATE_BUCKET,
+    Key: key,
+    ContentType: contentType ?? "application/octet-stream",
+  });
+  // Upload URL valid for 15 minutes
   return getSignedUrl(client, command, { expiresIn: 900 });
 }
 

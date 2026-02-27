@@ -38,6 +38,53 @@ function showFileBrowser() {
   loadFiles("");
 }
 
+// ── Upload ───────────────────────────────────────────────────────────────────
+window.handleUpload = async function () {
+  const input = document.getElementById("upload-input");
+  const statusEl = document.getElementById("upload-status");
+  const file = input.files[0];
+  if (!file) { statusEl.textContent = "Please select a file first."; return; }
+
+  const key = currentPrefix ? `${currentPrefix}${file.name}` : file.name;
+  statusEl.textContent = "Uploading…";
+  statusEl.style.color = "#555";
+
+  try {
+    // Step 1: get a presigned PUT URL from our Lambda
+    const apiUrl = await getApiUrl();
+    const headers = await authHeaders();
+    const res = await fetch(`${apiUrl}files`, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ key, contentType: file.type || "application/octet-stream" }),
+    });
+    if (!res.ok) throw new Error(`Failed to get upload URL: HTTP ${res.status}`);
+    const { url } = await res.json();
+
+    // Step 2: PUT the file directly to S3 using the presigned URL
+    const uploadRes = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": file.type || "application/octet-stream" },
+      body: file,
+    });
+    if (!uploadRes.ok) throw new Error(`Upload failed: HTTP ${uploadRes.status}`);
+
+    statusEl.textContent = `✅ ${file.name} uploaded successfully.`;
+    statusEl.style.color = "green";
+    input.value = "";
+
+    // Refresh the file list
+    setTimeout(() => {
+      statusEl.textContent = "";
+      loadFiles(currentPrefix);
+    }, 2000);
+
+  } catch (err) {
+    statusEl.textContent = `❌ ${err.message}`;
+    statusEl.style.color = "red";
+  }
+};
+
 window.handleSignIn = async function () {
   const email = document.getElementById("private-email").value.trim();
   const password = document.getElementById("private-password").value;

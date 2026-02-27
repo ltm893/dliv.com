@@ -45,7 +45,7 @@ privateFilesLambda.addEnvironment("PRIVATE_BUCKET", PRIVATE_BUCKET_NAME);
 privateFilesLambda.addToRolePolicy(
   new PolicyStatement({
     effect: Effect.ALLOW,
-    actions: ["s3:GetObject", "s3:ListBucket"],
+    actions: ["s3:GetObject", "s3:ListBucket", "s3:PutObject"],
     resources: [
       `arn:aws:s3:::${PRIVATE_BUCKET_NAME}`,
       `arn:aws:s3:::${PRIVATE_BUCKET_NAME}/*`,
@@ -83,6 +83,10 @@ album.addMethod("GET", new LambdaIntegration(photosLambda));
 // Private routes (require valid Cognito JWT)
 const filesResource = api.root.addResource("files");
 filesResource.addMethod("GET", new LambdaIntegration(privateFilesLambda), {
+  authorizer: cognitoAuthorizer,
+  authorizationType: AuthorizationType.COGNITO,
+});
+filesResource.addMethod("POST", new LambdaIntegration(privateFilesLambda), {
   authorizer: cognitoAuthorizer,
   authorizationType: AuthorizationType.COGNITO,
 });
