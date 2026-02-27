@@ -39,6 +39,11 @@ function showFileBrowser() {
 }
 
 // ── Upload ───────────────────────────────────────────────────────────────────
+window.toggleUpload = function () {
+  const area = document.getElementById("upload-area");
+  area.style.display = area.style.display === "none" ? "block" : "none";
+};
+
 window.handleUpload = async function () {
   const input = document.getElementById("upload-input");
   const statusEl = document.getElementById("upload-status");
@@ -73,9 +78,10 @@ window.handleUpload = async function () {
     statusEl.style.color = "green";
     input.value = "";
 
-    // Refresh the file list
+    // Close upload area and refresh file list
     setTimeout(() => {
       statusEl.textContent = "";
+      document.getElementById("upload-area").style.display = "none";
       loadFiles(currentPrefix);
     }, 2000);
 

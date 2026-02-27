@@ -97,10 +97,13 @@
                 </div>
                 <div id="private-breadcrumb" style="font-size:0.85rem; margin:0.5rem 0; color:#555"></div>
                 <!-- Upload area -->
-                <div id="upload-area" style="margin:0.75rem 0; padding:0.75rem; border:1px dashed #ccc; border-radius:4px; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                    <input type="file" id="upload-input" />
-                    <button onclick="handleUpload()">⬆ Upload</button>
-                    <span id="upload-status" style="font-size:0.85rem;"></span>
+                <button onclick="toggleUpload()" style="margin:0.5rem 0; font-size:0.85rem;">+ File</button>
+                <div id="upload-area" style="display:none; margin:0.5rem 0; padding:0.75rem; border:1px dashed #ccc; border-radius:4px;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                        <input type="file" id="upload-input" />
+                        <button onclick="handleUpload()">⬆ Upload</button>
+                    </div>
+                    <span id="upload-status" style="font-size:0.85rem; display:block; margin-top:0.3rem;"></span>
                 </div>
                 <ul id="private-file-list"></ul>
             </div>
