@@ -3,6 +3,11 @@
 let amplifyConfigured = false;
 let currentPrefix = "";
 
+// ── Audio player state ────────────────────────────────────────────────────────
+let playlist = [];       // array of file keys
+let trackIndex = 0;
+let audio = null;
+
 async function loadAmplify() {
   const { Amplify } = await import("https://esm.sh/aws-amplify@6");
   const { fetchAuthSession, signIn, signOut, getCurrentUser, confirmSignIn } =
@@ -55,7 +60,6 @@ window.handleUpload = async function () {
   statusEl.style.color = "#555";
 
   try {
-    // Step 1: get a presigned PUT URL from our Lambda
     const apiUrl = await getApiUrl();
     const headers = await authHeaders();
     const res = await fetch(`${apiUrl}files`, {
@@ -66,7 +70,6 @@ window.handleUpload = async function () {
     if (!res.ok) throw new Error(`Failed to get upload URL: HTTP ${res.status}`);
     const { url } = await res.json();
 
-    // Step 2: PUT the file directly to S3 using the presigned URL
     const uploadRes = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": file.type || "application/octet-stream" },
@@ -78,7 +81,6 @@ window.handleUpload = async function () {
     statusEl.style.color = "green";
     input.value = "";
 
-    // Close upload area and refresh file list
     setTimeout(() => {
       statusEl.textContent = "";
       document.getElementById("upload-area").style.display = "none";
@@ -115,6 +117,7 @@ window.handleSignIn = async function () {
 
 window.handleSignOut = async function () {
   const { signOut } = await loadAmplify();
+  stopPlayer();
   await signOut();
   showLoginForm();
 };
@@ -175,7 +178,19 @@ async function loadFiles(prefix) {
       return;
     }
 
-    // Render folders first, then files
+    // Check for MP3s in current folder
+    const mp3Files = files.filter((f) => f.key.toLowerCase().endsWith(".mp3"));
+    const hasMp3 = mp3Files.length > 0;
+
+    // MP3 play buttons
+    const mp3Html = hasMp3 ? `
+      <li class="mp3-controls" style="list-style:none; padding:0.4rem 0; border-bottom:1px solid #eee; display:flex; gap:0.5rem;">
+        <button onclick="startPlaylist(false)" style="font-size:0.85rem;">▶ Play All</button>
+        <button onclick="startPlaylist(true)" style="font-size:0.85rem;">🔀 Shuffle</button>
+        <span style="font-size:0.8rem; color:#888; align-self:center;">${mp3Files.length} track${mp3Files.length !== 1 ? "s" : ""}</span>
+      </li>` : "";
+
+    // Folders
     const folderHtml = folders.map((f) => {
       const name = f.key.replace(prefix, "").replace("/", "");
       return `<li class="folder-item">
@@ -185,18 +200,28 @@ async function loadFiles(prefix) {
       </li>`;
     });
 
+    // Files — MP3s get a ▶ inline play button
     const fileHtml = files.map((f) => {
       const name = f.key.split("/").pop();
       const size = formatBytes(f.size);
+      const isMp3 = f.key.toLowerCase().endsWith(".mp3");
+      const playBtn = isMp3
+        ? `<button onclick="playSingleTrack('${encodeURIComponent(f.key)}')" title="Play" style="font-size:0.75rem; padding:0.1rem 0.4rem;">▶</button>`
+        : "";
       return `<li class="file-item">
+        ${playBtn}
         <a href="#" onclick="openFile('${encodeURIComponent(f.key)}'); return false;">
-          📄 ${name}
+          ${isMp3 ? "🎵" : "📄"} ${name}
         </a>
         <span class="file-size">${size}</span>
       </li>`;
     });
 
-    listEl.innerHTML = [...folderHtml, ...fileHtml].join("");
+    listEl.innerHTML = mp3Html + [...folderHtml, ...fileHtml].join("");
+
+    // Store mp3 keys for playlist use
+    window._currentMp3Keys = mp3Files.map((f) => f.key);
+
   } catch (err) {
     listEl.innerHTML = `<li style="color:red">Error: ${err.message}</li>`;
   }
@@ -212,6 +237,117 @@ window.openFile = async function (encodedKey) {
     window.open(url, "_blank");
   } catch (err) {
     alert("Could not open file: " + err.message);
+  }
+};
+
+// ── Audio player ─────────────────────────────────────────────────────────────
+async function getPresignedUrl(key) {
+  const apiUrl = await getApiUrl();
+  const headers = await authHeaders();
+  const res = await fetch(`${apiUrl}files/${encodeURIComponent(key)}`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const { url } = await res.json();
+  return url;
+}
+
+window.startPlaylist = function (shuffle) {
+  const keys = [...(window._currentMp3Keys || [])];
+  if (!keys.length) return;
+
+  if (shuffle) {
+    // Fisher-Yates shuffle
+    for (let i = keys.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [keys[i], keys[j]] = [keys[j], keys[i]];
+    }
+  }
+
+  playlist = keys;
+  trackIndex = 0;
+  playTrack(trackIndex);
+};
+
+window.playSingleTrack = async function (encodedKey) {
+  playlist = [decodeURIComponent(encodedKey)];
+  trackIndex = 0;
+  playTrack(0);
+};
+
+async function playTrack(index) {
+  if (index < 0 || index >= playlist.length) {
+    stopPlayer();
+    return;
+  }
+
+  const key = playlist[index];
+  const name = key.split("/").pop();
+  showPlayer(name, index, playlist.length);
+  updatePlayerLoading(true);
+
+  try {
+    const url = await getPresignedUrl(key);
+
+    if (!audio) {
+      audio = new Audio();
+      audio.addEventListener("ended", () => playTrack(trackIndex + 1));
+      audio.addEventListener("timeupdate", updateProgress);
+      audio.addEventListener("canplay", () => updatePlayerLoading(false));
+    } else {
+      audio.pause();
+      audio.src = "";
+    }
+
+    audio.src = url;
+    trackIndex = index;
+    audio.play();
+  } catch (err) {
+    document.getElementById("player-track").textContent = `Error: ${err.message}`;
+    updatePlayerLoading(false);
+  }
+}
+
+function showPlayer(trackName, index, total) {
+  const player = document.getElementById("audio-player");
+  player.style.display = "flex";
+  document.getElementById("player-track").textContent = trackName;
+  document.getElementById("player-count").textContent = `${index + 1} / ${total}`;
+  document.getElementById("player-progress").value = 0;
+}
+
+function updatePlayerLoading(loading) {
+  document.getElementById("player-track").style.opacity = loading ? "0.5" : "1";
+}
+
+function updateProgress() {
+  if (!audio || !audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById("player-progress").value = pct;
+}
+
+function stopPlayer() {
+  if (audio) {
+    audio.pause();
+    audio.src = "";
+  }
+  playlist = [];
+  document.getElementById("audio-player").style.display = "none";
+}
+
+window.playerPrev = function () {
+  if (trackIndex > 0) playTrack(trackIndex - 1);
+};
+
+window.playerNext = function () {
+  playTrack(trackIndex + 1);
+};
+
+window.playerStop = function () {
+  stopPlayer();
+};
+
+window.playerSeek = function (el) {
+  if (audio && audio.duration) {
+    audio.currentTime = (el.value / 100) * audio.duration;
   }
 };
 

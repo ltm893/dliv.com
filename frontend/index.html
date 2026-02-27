@@ -51,6 +51,42 @@
         }
         .file-size { color: #999; font-size: 0.8rem; }
         #private-error { color: red; font-size: 0.85rem; margin-top: 0.3rem; }
+        /* ── Audio player bar ── */
+        #audio-player {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #222;
+            color: #fff;
+            padding: 0.6rem 1rem;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 999;
+            flex-wrap: wrap;
+        }
+        #audio-player button {
+            background: none;
+            border: 1px solid #888;
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        #player-track {
+            flex: 1;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 100px;
+        }
+        #player-progress {
+            flex: 2;
+            min-width: 80px;
+            cursor: pointer;
+        }
+        #player-count { font-size: 0.75rem; color: #aaa; }
     </style>
 </head>
 
@@ -115,6 +151,18 @@
     <footer>
         <p>&copy; 2020 - This is the footer.</p>
     </footer>
+
+    <!-- ── Audio Player Bar ─────────────────────────────────────────────────── -->
+    <div id="audio-player">
+        <button onclick="playerPrev()">⏮</button>
+        <button onclick="audio && (audio.paused ? audio.play() : audio.pause())">⏯</button>
+        <button onclick="playerNext()">⏭</button>
+        <span id="player-track">No track</span>
+        <input id="player-progress" type="range" min="0" max="100" value="0" oninput="playerSeek(this)" />
+        <span id="player-count"></span>
+        <button onclick="playerStop()">■ Stop</button>
+    </div>
+    <!-- ─────────────────────────────────────────────────────────────── -->
 
     <script type="module" src="./privateFiles.js"></script>
     <script>
