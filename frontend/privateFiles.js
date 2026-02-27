@@ -8,6 +8,9 @@ let playlist = [];       // array of file keys
 let trackIndex = 0;
 let audio = null;
 
+// ── Download mode state ───────────────────────────────────────────────────────
+let downloadMode = false;
+
 async function loadAmplify() {
   const { Amplify } = await import("https://esm.sh/aws-amplify@6");
   const { fetchAuthSession, signIn, signOut, getCurrentUser, confirmSignIn } =
@@ -200,16 +203,19 @@ async function loadFiles(prefix) {
       </li>`;
     });
 
-    // Files — MP3s get a ▶ inline play button
+    // Files — MP3s get a ▶ inline play button; download mode adds checkboxes
     const fileHtml = files.map((f) => {
       const name = f.key.split("/").pop();
       const size = formatBytes(f.size);
       const isMp3 = f.key.toLowerCase().endsWith(".mp3");
-      const playBtn = isMp3
+      const playBtn = isMp3 && !downloadMode
         ? `<button onclick="playSingleTrack('${encodeURIComponent(f.key)}')" title="Play" style="font-size:0.75rem; padding:0.1rem 0.4rem;">▶</button>`
         : "";
+      const checkbox = downloadMode
+        ? `<input type="checkbox" class="file-checkbox" data-key="${f.key}" style="margin-right:0.4rem; cursor:pointer;" />`
+        : "";
       return `<li class="file-item">
-        ${playBtn}
+        ${checkbox}${playBtn}
         <a href="#" onclick="openFile('${encodeURIComponent(f.key)}'); return false;">
           ${isMp3 ? "🎵" : "📄"} ${name}
         </a>
@@ -349,6 +355,65 @@ window.playerSeek = function (el) {
   if (audio && audio.duration) {
     audio.currentTime = (el.value / 100) * audio.duration;
   }
+};
+
+// ── Download mode ───────────────────────────────────────────────────────────────────
+window.toggleDownloadMode = function () {
+  downloadMode = !downloadMode;
+  const btn = document.getElementById("download-mode-btn");
+  const checkAllBtn = document.getElementById("check-all-btn");
+  const downloadSelectedBtn = document.getElementById("download-selected-btn");
+
+  btn.textContent = downloadMode ? "✕ Cancel" : "⬇ Download";
+  checkAllBtn.style.display = downloadMode ? "inline-block" : "none";
+  downloadSelectedBtn.style.display = downloadMode ? "inline-block" : "none";
+
+  // Re-render file list to add/remove checkboxes
+  loadFiles(currentPrefix);
+};
+
+window.checkAll = function () {
+  const checkboxes = document.querySelectorAll(".file-checkbox");
+  const allChecked = [...checkboxes].every((cb) => cb.checked);
+  checkboxes.forEach((cb) => (cb.checked = !allChecked));
+  // toggle button label
+  document.getElementById("check-all-btn").textContent =
+    allChecked ? "☑ Check All" : "☐ Uncheck All";
+};
+
+window.downloadSelected = async function () {
+  const checkboxes = [...document.querySelectorAll(".file-checkbox:checked")];
+  if (!checkboxes.length) {
+    alert("No files selected.");
+    return;
+  }
+
+  const btn = document.getElementById("download-selected-btn");
+  btn.textContent = "Downloading…";
+  btn.disabled = true;
+
+  for (const cb of checkboxes) {
+    const key = cb.dataset.key;
+    const name = key.split("/").pop();
+    try {
+      const url = await getPresignedUrl(key);
+      // Create a hidden anchor and click it to trigger download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Small delay between downloads so browser doesn't block them
+      await new Promise((r) => setTimeout(r, 600));
+    } catch (err) {
+      console.error(`Failed to download ${name}:`, err);
+    }
+  }
+
+  btn.textContent = "⬇ Download Selected";
+  btn.disabled = false;
 };
 
 function formatBytes(bytes) {

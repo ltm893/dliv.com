@@ -132,8 +132,14 @@
                     <button onclick="handleSignOut()">Sign Out</button>
                 </div>
                 <div id="private-breadcrumb" style="font-size:0.85rem; margin:0.5rem 0; color:#555"></div>
-                <!-- Upload area -->
-                <button onclick="toggleUpload()" style="margin:0.5rem 0; font-size:0.85rem;">+ File</button>
+                <!-- Toolbar -->
+                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin:0.5rem 0;">
+                    <button onclick="toggleUpload()" style="font-size:0.85rem;">+ File</button>
+                    <button onclick="toggleDownloadMode()" id="download-mode-btn" style="font-size:0.85rem;">⬇ Download</button>
+                    <!-- shown only in download mode -->
+                    <button id="check-all-btn" onclick="checkAll()" style="font-size:0.85rem; display:none;">☑ Check All</button>
+                    <button id="download-selected-btn" onclick="downloadSelected()" style="font-size:0.85rem; display:none;">⬇ Download Selected</button>
+                </div>
                 <div id="upload-area" style="display:none; margin:0.5rem 0; padding:0.75rem; border:1px dashed #ccc; border-radius:4px;">
                     <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                         <input type="file" id="upload-input" />
