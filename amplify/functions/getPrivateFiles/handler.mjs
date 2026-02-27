@@ -37,24 +37,40 @@ async function listFiles(prefix) {
   const command = new ListObjectsV2Command({
     Bucket: PRIVATE_BUCKET,
     Prefix: prefix,
+    Delimiter: "/",
   });
 
+  let folders = [];
   let files = [];
   let isTruncated = true;
 
   while (isTruncated) {
-    const { IsTruncated, NextContinuationToken, Contents } = await client.send(command);
+    const { IsTruncated, NextContinuationToken, Contents, CommonPrefixes } = await client.send(command);
     isTruncated = IsTruncated ?? false;
     command.input.ContinuationToken = NextContinuationToken;
-    if (Contents) {
-      files = files.concat(Contents.map((obj) => ({
-        key: obj.Key,
-        size: obj.Size,
-        lastModified: obj.LastModified,
+
+    // CommonPrefixes are the subfolders
+    if (CommonPrefixes) {
+      folders = folders.concat(CommonPrefixes.map((p) => ({
+        key: p.Prefix,
+        type: "folder",
       })));
     }
+    // Contents are the actual files (skip the folder placeholder itself)
+    if (Contents) {
+      files = files.concat(
+        Contents
+          .filter((obj) => obj.Key !== prefix)
+          .map((obj) => ({
+            key: obj.Key,
+            size: obj.Size,
+            lastModified: obj.LastModified,
+            type: "file",
+          }))
+      );
+    }
   }
-  return files;
+  return { folders, files };
 }
 
 async function getPresignedUrl(key) {

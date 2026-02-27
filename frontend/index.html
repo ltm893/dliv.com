@@ -76,7 +76,7 @@
 
     <!-- ── Private Files Section ─────────────────────────────────────── -->
     <div id="private-section">
-        <button id="private-toggle" onclick="togglePrivate()">🔒 Private Files</button>
+        <button id="private-toggle" onclick="togglePrivate()">🔒 Friends</button>
 
         <div id="private-panel" style="display:none">
 
@@ -92,9 +92,10 @@
             <!-- File browser (shown after login) -->
             <div id="private-browser" style="display:none">
                 <div style="display:flex; justify-content:space-between; align-items:center">
-                    <h3 style="margin:0">Private Files</h3>
+                    <h3 style="margin:0">Friends</h3>
                     <button onclick="handleSignOut()">Sign Out</button>
                 </div>
+                <div id="private-breadcrumb" style="font-size:0.85rem; margin:0.5rem 0; color:#555"></div>
                 <ul id="private-file-list"></ul>
             </div>
 

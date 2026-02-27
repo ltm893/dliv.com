@@ -1,6 +1,7 @@
 // privateFiles.js — invite-only private file browser
 
 let amplifyConfigured = false;
+let currentPrefix = "";
 
 async function loadAmplify() {
   const { Amplify } = await import("https://esm.sh/aws-amplify@6");
@@ -34,7 +35,7 @@ function showLoginForm() {
 function showFileBrowser() {
   document.getElementById("private-login").style.display = "none";
   document.getElementById("private-browser").style.display = "block";
-  loadFiles();
+  loadFiles("");
 }
 
 window.handleSignIn = async function () {
@@ -77,7 +78,31 @@ async function authHeaders() {
   return { Authorization: token };
 }
 
-async function loadFiles(prefix = "") {
+// ── Breadcrumb ───────────────────────────────────────────────────────────────
+function renderBreadcrumb(prefix) {
+  const el = document.getElementById("private-breadcrumb");
+  const parts = prefix ? prefix.split("/").filter(Boolean) : [];
+
+  let html = `<a href="#" onclick="navigateTo(''); return false;">Home</a>`;
+  let built = "";
+  for (const part of parts) {
+    built += part + "/";
+    const p = built;
+    html += ` / <a href="#" onclick="navigateTo('${encodeURIComponent(p)}'); return false;">${part}</a>`;
+  }
+  el.innerHTML = html;
+}
+
+window.navigateTo = function (encodedPrefix) {
+  const prefix = decodeURIComponent(encodedPrefix);
+  loadFiles(prefix);
+};
+
+// ── File listing ─────────────────────────────────────────────────────────────
+async function loadFiles(prefix) {
+  currentPrefix = prefix;
+  renderBreadcrumb(prefix);
+
   const listEl = document.getElementById("private-file-list");
   listEl.innerHTML = "<li>Loading…</li>";
 
@@ -90,23 +115,35 @@ async function loadFiles(prefix = "") {
 
     const res = await fetch(url, { headers });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const files = await res.json();
+    const { folders, files } = await res.json();
 
-    if (!files.length) {
+    if (!folders.length && !files.length) {
       listEl.innerHTML = "<li>No files found.</li>";
       return;
     }
 
-    listEl.innerHTML = files
-      .map((f) => {
-        const name = f.key.split("/").pop();
-        const size = formatBytes(f.size);
-        return `<li>
-          <a href="#" onclick="openFile('${encodeURIComponent(f.key)}'); return false;">${name}</a>
-          <span class="file-size">${size}</span>
-        </li>`;
-      })
-      .join("");
+    // Render folders first, then files
+    const folderHtml = folders.map((f) => {
+      const name = f.key.replace(prefix, "").replace("/", "");
+      return `<li class="folder-item">
+        <a href="#" onclick="navigateTo('${encodeURIComponent(f.key)}'); return false;">
+          📁 ${name}
+        </a>
+      </li>`;
+    });
+
+    const fileHtml = files.map((f) => {
+      const name = f.key.split("/").pop();
+      const size = formatBytes(f.size);
+      return `<li class="file-item">
+        <a href="#" onclick="openFile('${encodeURIComponent(f.key)}'); return false;">
+          📄 ${name}
+        </a>
+        <span class="file-size">${size}</span>
+      </li>`;
+    });
+
+    listEl.innerHTML = [...folderHtml, ...fileHtml].join("");
   } catch (err) {
     listEl.innerHTML = `<li style="color:red">Error: ${err.message}</li>`;
   }
