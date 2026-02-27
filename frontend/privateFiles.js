@@ -176,6 +176,16 @@ async function loadFiles(prefix) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { folders, files } = await res.json();
 
+    // Show/hide download button based on whether files exist
+    const hasFiles = files.length > 0;
+    document.getElementById("download-mode-btn").style.display =
+      hasFiles ? "inline-block" : "none";
+    if (!hasFiles && downloadMode) {
+      downloadMode = false;
+      document.getElementById("check-all-btn").style.display = "none";
+      document.getElementById("download-selected-btn").style.display = "none";
+    }
+
     if (!folders.length && !files.length) {
       listEl.innerHTML = "<li>No files found.</li>";
       return;
@@ -389,24 +399,29 @@ window.downloadSelected = async function () {
   }
 
   const btn = document.getElementById("download-selected-btn");
-  btn.textContent = "Downloading…";
   btn.disabled = true;
 
   for (const cb of checkboxes) {
     const key = cb.dataset.key;
     const name = key.split("/").pop();
+    btn.textContent = `Downloading ${name}…`;
     try {
       const url = await getPresignedUrl(key);
-      // Create a hidden anchor and click it to trigger download
+      // Fetch as blob so Safari honours the download (presigned URLs are cross-origin)
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = name;
       a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      // Small delay between downloads so browser doesn't block them
-      await new Promise((r) => setTimeout(r, 600));
+      // Small delay then revoke the blob URL to free memory
+      await new Promise((r) => setTimeout(r, 1000));
+      URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error(`Failed to download ${name}:`, err);
     }
