@@ -1,6 +1,15 @@
+
 INTERVALS = [];
-const ALBUMS_URL = 'https://kgztccthjk.execute-api.us-east-1.amazonaws.com/prod/albums';
-const PHOTOS_URL = 'https://kgztccthjk.execute-api.us-east-1.amazonaws.com/prod/albums/';
+let ALBUMS_URL = '';
+let PHOTOS_URL = '';
+
+async function loadConfig() {
+  const outputs = await fetch('/amplify_outputs.json').then(r => r.json());
+  const base = outputs.custom?.apiUrl;
+  ALBUMS_URL = base + 'albums';
+  PHOTOS_URL = base + 'albums/';
+}
+
 
 // Slideshow state
 let allPhotos = [];
@@ -104,7 +113,8 @@ const updatePlayPauseButton = () => {
 }
 
 // Control bar button handlers
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    await loadConfig();   // <-- add this line
     loadAlbumSelector('selectAlbum');
     setControlsVisible(false);
 
