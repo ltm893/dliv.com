@@ -8,36 +8,98 @@
     <link rel="stylesheet" href="abc.css" />
     <script src="./albumSlideShow.js"></script>
     <style>
-        /* ── Private section ── */
+        /* ── Private section — Warm Navy theme ── */
         #private-section {
             margin: 2rem auto;
             max-width: 600px;
-            font-family: sans-serif;
+            font-family: Arial, sans-serif;
         }
+        /* Main toggle button */
         #private-toggle {
-            background: none;
-            border: 1px solid #888;
-            padding: 0.4rem 1rem;
+            background: transparent;
+            border: 1.5px solid #1e3a5f;
+            color: #1e3a5f;
+            padding: 0.4rem 1.1rem;
+            border-radius: 20px;
             cursor: pointer;
-            border-radius: 4px;
-            color: #555;
             font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.15s;
         }
-        #private-panel { margin-top: 1rem; }
+        #private-toggle:hover { background: #1e3a5f; color: white; }
+        #private-panel {
+            margin-top: 1rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        /* Login form */
         #private-login input {
             display: block;
             width: 100%;
             margin: 0.4rem 0;
-            padding: 0.5rem;
+            padding: 0.5rem 0.75rem;
             box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 1.5px solid #dde3ec;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.15s;
         }
-        #private-login button, #private-browser button {
-            margin-top: 0.5rem;
-            padding: 0.4rem 1rem;
+        #private-login input:focus { border-color: #1e3a5f; }
+        /* Shared button base */
+        #private-login button,
+        #private-browser button {
+            font-size: 0.82rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
             cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-weight: 500;
+            margin-top: 0.4rem;
+            transition: all 0.15s;
+            border: 1.5px solid #1e3a5f;
+            background: transparent;
+            color: #1e3a5f;
         }
+        #private-login button:hover,
+        #private-browser button:hover {
+            background: #1e3a5f;
+            color: white;
+        }
+        /* Primary action buttons */
+        #private-browser #download-selected-btn,
+        #private-login button[onclick="handleSignIn()"] {
+            background: #1e3a5f;
+            color: white;
+            border-color: #1e3a5f;
+        }
+        #private-browser #download-selected-btn:hover,
+        #private-login button[onclick="handleSignIn()"]:hover {
+            background: #16304f;
+            border-color: #16304f;
+        }
+        /* Sign out — subtle */
+        #private-browser button[onclick="handleSignOut()"] {
+            border-color: #ddd;
+            color: #888;
+        }
+        #private-browser button[onclick="handleSignOut()"]:hover {
+            border-color: #e11d48;
+            color: #e11d48;
+            background: transparent;
+        }
+        /* Breadcrumb */
+        #private-breadcrumb a {
+            color: #1e3a5f;
+            text-decoration: none;
+            font-size: 0.83rem;
+            font-weight: 500;
+        }
+        #private-breadcrumb a:hover { text-decoration: underline; }
+        #private-breadcrumb { color: #bbb; font-size: 0.83rem; margin: 0.5rem 0; }
+        /* File list */
         #private-file-list {
             list-style: none;
             padding: 0;
@@ -45,18 +107,61 @@
         }
         #private-file-list li {
             padding: 0.4rem 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #f0f4f8;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 0.4rem;
         }
-        .file-size { color: #999; font-size: 0.8rem; }
-        #private-error { color: red; font-size: 0.85rem; margin-top: 0.3rem; }
+        #private-file-list a {
+            color: #1e3a5f;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        #private-file-list a:hover { text-decoration: underline; }
+        .file-size { color: #aaa; font-size: 0.78rem; margin-left: auto; }
+        /* Inline play button */
+        #private-file-list .play-btn,
+        button.play-btn {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            border: none;
+            background: #1e3a5f;
+            color: white;
+            cursor: pointer;
+            margin-top: 0;
+            transition: background 0.15s;
+        }
+        #private-file-list .play-btn:hover,
+        button.play-btn:hover { background: #16304f; }
+        /* MP3 play-all controls row */
+        .mp3-controls button {
+            font-size: 0.82rem;
+            padding: 0.3rem 0.85rem;
+            border-radius: 20px;
+            border: 1.5px solid #1e3a5f;
+            background: #1e3a5f;
+            color: white;
+            cursor: pointer;
+            margin-top: 0;
+            transition: background 0.15s;
+        }
+        .mp3-controls button:hover { background: #16304f; border-color: #16304f; }
+        /* Upload area */
+        #upload-area {
+            border: 1.5px dashed #b0bec5 !important;
+            border-radius: 8px !important;
+            background: #f8fafc;
+        }
+        #private-error { color: #e11d48; font-size: 0.85rem; margin-top: 0.3rem; }
+        /* Folder items */
+        .folder-item a { font-weight: 500; }
         /* ── Audio player bar ── */
         #audio-player {
             display: none;
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: #222;
+            background: #1e3a5f;
             color: #fff;
             padding: 0.6rem 1rem;
             align-items: center;
@@ -65,13 +170,18 @@
             flex-wrap: wrap;
         }
         #audio-player button {
-            background: none;
-            border: 1px solid #888;
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.4);
             color: #fff;
-            padding: 0.2rem 0.6rem;
+            padding: 0.2rem 0.7rem;
             cursor: pointer;
-            border-radius: 3px;
-            font-size: 0.9rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        #audio-player button:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.7);
         }
         #player-track {
             flex: 1;

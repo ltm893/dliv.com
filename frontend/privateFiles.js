@@ -219,7 +219,7 @@ async function loadFiles(prefix) {
       const size = formatBytes(f.size);
       const isMp3 = f.key.toLowerCase().endsWith(".mp3");
       const playBtn = isMp3 && !downloadMode
-        ? `<button onclick="playSingleTrack('${encodeURIComponent(f.key)}')" title="Play" style="font-size:0.75rem; padding:0.1rem 0.4rem;">▶</button>`
+        ? `<button class="play-btn" onclick="playSingleTrack('${encodeURIComponent(f.key)}')" title="Play">▶</button>`
         : "";
       const checkbox = downloadMode
         ? `<input type="checkbox" class="file-checkbox" data-key="${f.key}" style="margin-right:0.4rem; cursor:pointer;" />`
